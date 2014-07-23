@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(EnvironmentConfig)" />
+  <PropertyGroup>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>$(ObjectDirectory)\$(BuildArchitecture)</OutputPath>
+    <OutDir>$(INETROOT)\target\$(BUILDTYPE)\$(BUILDTARGET)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4D141EFA-3486-4301-BA04-86A5BDDE6347}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MS.Support.CMATGateway.Proxy</RootNamespace>
+    <AssemblyName>MS.Support.CMATGateway.Proxy</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>objd\amd64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Auditing\Auditing.cs" />
+    <Compile Include="Bec\Bec.cs" />
+    <Compile Include="Challenge\Challenge.cs" />
+    <Compile Include="Commerce\Account\Account.cs" />
+    <Compile Include="Commerce\PaymentInstrument\PaymentInstrument.cs" />
+    <Compile Include="Commerce\Tax\Tax.cs" />
+    <Compile Include="Commerce\Transaction\Transaction.cs" />
+    <Compile Include="CTPCommerce\CTPCommerce.cs" />
+    <Compile Include="DMP\DMPTransaction.cs" />
+    <Compile Include="DMP\DMPTransaction_Partial.cs" />
+    <Compile Include="DMP\IDMPTransaction.cs" />
+    <Compile Include="DRS\DRSService.cs" />
+    <Compile Include="Passport\Passport.cs" />
+    <Compile Include="RISK\Risk.cs" />
+    <Compile Include="SafeGuard\SafeGuard.cs" />
+    <Compile Include="SCS\IBdk.cs" />
+    <Compile Include="SCS\SCS.cs" />
+    <Compile Include="SCS\SCS_Partial.cs" />
+    <Compile Include="SCS\spsschema.cs">
+      <DependentUpon>spsschema.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="STS\Limit.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.Gateway.csproj">
+      <Project>{C96F0834-6CC2-4CC4-84BC-C146EC115293}</Project>
+      <Name>Common.Gateway</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SCS\spsschema.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(ExtendedTargetsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

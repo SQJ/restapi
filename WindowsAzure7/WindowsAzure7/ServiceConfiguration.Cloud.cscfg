@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="WindowsAzure7" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-10.2.2">
+  <Role name="MintRestApi">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=qijunstoratge;AccountKey=ZijSt4nDOdG+AbzzO3OT1DCyJEnCVNEcuvIhoNsFUhXl9ZotWM8nJGgxNs9R4/qrbfCXWrTsku2OOgMCjeoPQA==" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="waep" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEFfYlGDe4FCLTZxT69CX738wDQYJKoZIhvcNAQEBBQAEggEAoDDr8TeP0Zf1Oxb5KrWhKV2nGz795Q4tUzbFmC8NHdOmIdM1quj3u9aHHtX3+QlV7MJgq1ouK/CaFB1GZOQ+TEriNcMYD3tbAdZ0S3nK2bHCETb1XQozlfcnEvEbEg1bHtg4Ikjzu0QslyTiXWFZyyvsGe9MLyUDqq71w8He7mHckusNGzQ43+lKwrs7uDNRHn4HYkvP4JjE7h0tU91zF+zhw6KQ7xxNVWng7mZMbi6q0eMV8DXDHrNmcj50Kxcq5Ea+1CsiB832lF1pedXV8gth1RFyjPG/BKPLK6WEdt50JHQKPAADwq2f68u2JEXBNe8hByqpPOoMW5YCWFmLmTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECIdIuR6gtiYSgBAAg80dq4srTTlS47OrBi9u" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2014-09-06T23:59:59.0000000-07:00" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
+      <Setting name="DiagnosticMonitorEnabled" value="true" />
+      <Setting name="DiagLogsLogLevel" value="Verbose" />
+      <Setting name="DiagTransferPeriodMinutes" value="1" />
+      <Setting name="DiagPerfSampleRateSeconds" value="60" />
+      <Setting name="DiagInfrastuctureLogLevel" value="Error" />
+      <Setting name="DiagWindowsEventLogLevel" value="Error" />
+    </ConfigurationSettings>
+  </Role>
+</ServiceConfiguration>
