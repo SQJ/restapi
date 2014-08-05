@@ -2114,8 +2114,24 @@ namespace MintRestApi
         {
             string exid = res.externalKey;
             string status = res.status;
+            insertOrderHistory(exid.ToString(), "", "", "", 0, 0, "Purchase With CSV", "Complete", "", "CSV");
             OrderHistory order = GetOrder("ttt",exid,"aaa");
-            int t = updateOrderHistory(exid, order.account, "Purchase With Bitcoin", status, "BTC");      
+
+            if (status == "paid" && order.transtype == "Fund CSV With Bitcoin")
+            {
+                string account_email = order.account;
+                string amount_s = order.price;
+                string puid = EmailToPuid(account_email);
+                string accountId = GetAccountWithPuid(puid);
+                CreditPayment(puid, accountId, '-' + amount_s);
+            }
+            if (status == "paid")
+            {
+                status = "Complete";
+            }
+            int t = updateOrderHistory(exid, order.account, order.transtype, status, "BTC");
+
+            //int t = updateOrderHistory(exid, order.account, "Purchase With Bitcoin", status, "BTC");      
             return t.ToString();
         }
 
@@ -2170,7 +2186,7 @@ namespace MintRestApi
 
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
                 string method = "createPurchaseOrder";
-                string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponseOp";
+                string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
                 string param = amount + ",USD," + callback_url + "," + callback_url + "," + id + ",Funding CSV";
                 TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
                 long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
@@ -2227,7 +2243,7 @@ namespace MintRestApi
             // For https.
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             string method = "createPurchaseOrder";
-            string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponseOp";
+            string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
             string param = total.ToString() + ",USD," + callback_url + "," + callback_url + "," + id + ",BTC Order";
             TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
             long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
@@ -2281,7 +2297,7 @@ namespace MintRestApi
             // For https.
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             string method = "createPurchaseOrder";
-            string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponseOp";
+            string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
             string param = total.ToString() + ",USD," + callback_url + "," + callback_url + "," + id + ",TestOrder";
             TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
             long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
@@ -2638,7 +2654,7 @@ namespace MintRestApi
                 string toastMessage = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
                 "<wp:Notification xmlns:wp=\"WPNotification\">" +
                    "<wp:Toast>" +
-                        "<wp:Text1>" + content1 + "</wp:Text1>" +
+                        "<wp:Text1>" + content1.Split('@')[0] + "</wp:Text1>" +
                         "<wp:Text2>" + content2 + "</wp:Text2>" +
                         "<wp:Param>/Views/LoadingPage.xaml</wp:Param>" +
                    "</wp:Toast> " +
