@@ -34,6 +34,7 @@ namespace MintRestApi
 {
     // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "MintRESTfulAPI" in code, svc and config file together.
     // NOTE: In order to launch WCF Test Client for testing this service, please select MintRESTfulAPI.svc or MintRESTfulAPI.svc.cs at the Solution Explorer and start debugging.
+
     public class MintRESTfulAPI : IMintRESTfulAPI
     {
         private static string soapServer = "sps.msn-int.com";
@@ -58,8 +59,12 @@ namespace MintRestApi
         private static readonly string nameSpace = "urn:schemas-microsoft-com:billing-data";
 
         private Random RNG = new Random();
+        private static URLMessage urlcheck = new URLMessage();
 
         private static CTPConfiguration config = new CTPConfiguration(soapServer, certFile);
+
+        public enum QueryStatus { Success, NoDevice, WrongInfo, NoHeader };
+        
 
         private static string userName = "t-qishen";
         private static string password = "#Bugfor$";
@@ -89,27 +94,13 @@ namespace MintRestApi
             return res.ToString();
         }
 
+        #region Security 
         private String requestLive(string accesstoken)
         {
             WebClient webClient = new WebClient();
             string curtime = DateTime.Now.ToString("yyyy-MM-ddThh:mm:sszzz");
             string url = globalUrl + "?access_token=" + accesstoken + "&time=" + curtime;
             return webClient.DownloadString(url);
-        }
-
-        public string getLive(string accesstoken, string email)
-        {
-            try
-            {
-                string rawJson = requestLive(accesstoken);
-                JObject json = JObject.Parse(rawJson);
-                return json["emails"]["account"].ToString();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-            return null;
         }
 
         public bool verifyLive(string accesstoken, string email)
@@ -131,6 +122,97 @@ namespace MintRestApi
             }
             return false;
         }
+
+        public bool verifyURL()
+        {
+            IncomingWebRequestContext request = WebOperationContext.Current.IncomingRequest;
+            WebHeaderCollection headers = request.Headers;
+
+            string guid = headers["GUID"];
+
+            return urlcheck.verifyguid(guid);
+      
+        }
+
+        public QueryStatus verifyCookie(string email, ref string deviceID)
+        {
+            // RETURN status: 
+            // Success: verity success, need update;
+            // NoDevice: verity fail, No this device, need create if token verified;
+            // WrongInfo verity fail, Wrong email or date, need update if token verified
+            // Noheader: error, No device header
+            try
+            {
+                IncomingWebRequestContext request = WebOperationContext.Current.IncomingRequest;
+                WebHeaderCollection headers = request.Headers;
+
+                string query_id = null, query_email = null;
+                DateTime query_expire = DateTime.UtcNow;
+
+                if (headers["UDID"] != null)
+                {
+                    deviceID = headers["UDID"];
+
+                    //query in DB, If deviceID not exist or expire or not fit with the email, return false;   
+                    // only if the deviceID fit the email and the expire date, return true; Notice! return true , we should
+                    // update the expire date to nowtime.
+                    DeviceID_Query(ref deviceID, ref query_id, ref query_email, ref query_expire);
+
+                    if (query_id == null) return QueryStatus.NoDevice;
+                    else if (query_email != email || query_expire <= DateTime.UtcNow)
+                        return QueryStatus.WrongInfo;
+                    else return QueryStatus.Success;
+               }
+
+                return QueryStatus.NoHeader;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            return QueryStatus.NoHeader;
+        }
+
+        public bool veritySecurity(string accesstoken, string email)
+        {
+            try
+            {
+                string deviceID = null;
+                bool urlflag = false;
+
+                QueryStatus status = verifyCookie(email, ref deviceID);
+
+                if (status == QueryStatus.Success)
+                {
+
+                    DeviceID_Update(deviceID, email);
+                    urlflag = verifyURL();
+                    return urlflag;
+                }
+                else
+                {
+                    bool flag = verifyLive(accesstoken, email);
+                    if (!flag) return false;
+                    else
+                    {
+                        if (status == QueryStatus.NoDevice) DeviceID_Insert(deviceID, email);
+                        else if (status == QueryStatus.WrongInfo) DeviceID_Update(deviceID, email);
+                    }
+                    urlflag = verifyURL();
+                    return urlflag;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            return false;
+
+        }
+
+        #endregion
 
         #region Account Builder
         private Identity BuildIdentityFromAccountWithPuid(string puid)
@@ -210,8 +292,8 @@ namespace MintRestApi
             //var version = WebOperationContext.Current.IncomingRequest.Headers["User-Agent"];
             //return version;
             try
-            {
-                bool trusted = verifyLive(token_value, email);
+            {               
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -395,6 +477,92 @@ namespace MintRestApi
         #endregion
 
         #region DB operation
+        public void DeviceID_Query(ref string deviceID, ref string query_id, ref string query_email, ref DateTime query_expire)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        command.CommandText = "querydeviceID";
+                        command.Parameters.AddWithValue("@id", deviceID);
+                        command.CommandType = CommandType.StoredProcedure;
+                        SqlDataReader reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            query_id = reader["deviceID"].ToString();
+                            query_email = reader["email"].ToString();
+                            query_expire = Convert.ToDateTime(reader["expire"]);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public void DeviceID_Insert(string deviceID, string email)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+
+                        command.CommandText = "insert_deviceID";
+                        command.Parameters.AddWithValue("@id", deviceID);
+                        command.Parameters.AddWithValue("@email", email);
+                        command.Parameters.AddWithValue("ExpireDate", DateTime.UtcNow.AddMinutes(30));
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.ExecuteNonQuery();
+
+                        conn.Close();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public void DeviceID_Update(string deviceID, string email)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+
+                        command.CommandText = "update_deviceID";
+                        command.Parameters.AddWithValue("@id", deviceID);
+                        command.Parameters.AddWithValue("@email", email);
+                        command.Parameters.AddWithValue("ExpireDate", DateTime.UtcNow.AddMinutes(30));
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.ExecuteNonQuery();
+
+                        conn.Close();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+
         public string EmailToPuid(string email)
         {
             try
@@ -782,7 +950,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return null;
@@ -983,7 +1151,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -1006,7 +1174,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -1029,7 +1197,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -1161,7 +1329,7 @@ namespace MintRestApi
         {
             try
             {
-                //bool trusted = verifyLive(token_value, email);
+                //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
                 //    return "Untrusted Client Request";
@@ -1200,7 +1368,7 @@ namespace MintRestApi
         {
             try
             {
-                //bool trusted = verifyLive(token_value, email);
+                //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
                 //    return "Untrusted Client Request";
@@ -1412,7 +1580,7 @@ namespace MintRestApi
         {
             try
             {
-                //bool trusted = verifyLive(token_value, email);
+                //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
                 //    return "Untrusted Client Request";
@@ -1464,7 +1632,7 @@ namespace MintRestApi
         {
             try
             {
-                //bool trusted = verifyLive(token_value, email);
+                //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
                 //    return "Untrusted Client Request";
@@ -1515,7 +1683,7 @@ namespace MintRestApi
         {
             try
             {
-                //bool trusted = verifyLive(token_value, email);
+                //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
                 //    return "Untrusted Client Request";
@@ -1567,7 +1735,7 @@ namespace MintRestApi
         {
             try
             {
-                //bool trusted = verifyLive(token_value, email);
+                //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
                 //    return "Untrusted Client Request";
@@ -1625,7 +1793,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return null;
@@ -1917,7 +2085,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2058,7 +2226,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, sender_email);
+                bool trusted = veritySecurity(token_value, sender_email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2175,7 +2343,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2430,7 +2598,7 @@ namespace MintRestApi
             try
             {
                 //check for access auth
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2474,7 +2642,7 @@ namespace MintRestApi
             try
             {
                 //check for access auth
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2521,7 +2689,7 @@ namespace MintRestApi
         {
             try
             {
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2608,7 +2776,7 @@ namespace MintRestApi
             try
             {
                 //check for access auth
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
@@ -2697,7 +2865,7 @@ namespace MintRestApi
             try
             {
                 //check for access auth
-                bool trusted = verifyLive(token_value, email);
+                bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
                     return "Untrusted Client Request";
