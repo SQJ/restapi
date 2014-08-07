@@ -89,3 +89,4 @@ C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\zh-Hant\S
 C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\obj\Release\MintRestApi.csprojResolveAssemblyReference.cache
 C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\obj\Release\MintRestApi.dll
 C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\obj\Release\MintRestApi.pdb
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.WindowsAzure.Diagnostics.dll

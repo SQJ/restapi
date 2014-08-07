@@ -4,5 +4,8 @@
     <PackageProfile>Cloud</PackageProfile>
     <PackageSolutionConfiguration>Release</PackageSolutionConfiguration>
     <PackageEnableRemoteDesktop>False</PackageEnableRemoteDesktop>
+    <WebRoleSkipLaunchInBrowser>
+    </WebRoleSkipLaunchInBrowser>
+    <WebRoleHttpsSkipLaunchInBrowser>MintRestApi</WebRoleHttpsSkipLaunchInBrowser>
   </PropertyGroup>
 </Project>

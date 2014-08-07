@@ -128,6 +128,8 @@ namespace MintRestApi
             IncomingWebRequestContext request = WebOperationContext.Current.IncomingRequest;
             WebHeaderCollection headers = request.Headers;
 
+            
+
             string guid = headers["GUID"];
 
             return urlcheck.verifyguid(guid);
@@ -1156,7 +1158,25 @@ namespace MintRestApi
                 {
                     return "Untrusted Client Request";
                 }
-                string res = getSumByTransType(email,"Purchase Gift CSV With CSV");
+                string res = getSendTotalCSV_Inner(email);
+                if (res == null)
+                {
+                    res = "0";
+                }
+                return res;
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public string getSendTotalCSV_Inner(string email)
+        {
+            try
+            {
+                string res = getSumByTransType(email, "Purchase Gift CSV With CSV");
                 if (res == null)
                 {
                     res = "0";
@@ -1179,7 +1199,25 @@ namespace MintRestApi
                 {
                     return "Untrusted Client Request";
                 }
-                string res = getSumByTransType(email,"Receive Gift CSV");
+                string res = getReceiveTotalCSV_Inner(email);
+                if (res == null)
+                {
+                    res = "0";
+                }
+                return res;
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public string getReceiveTotalCSV_Inner(string email)
+        {
+            try
+            {
+                string res = getSumByTransType(email, "Receive Gift CSV");
                 if (res == null)
                 {
                     res = "0";
@@ -1202,23 +1240,25 @@ namespace MintRestApi
                 {
                     return "Untrusted Client Request";
                 }
-                //double total = 0;
-                //var puid = EmailToPuid(email);
-                //var accountId = GetAccountWithPuid(puid);
-                //PIType.PaymentInstrument pi = GetSVPI(puid, accountId);
-                //foreach (var property in pi.PropertyBag)
-                //{
-                //    if (property.Name == "StoredValueBalanceAmount")
-                //    {
-                //        total = Double.Parse(property.Value);
-                //        break;
-                //    }
-                //}
+
+                string res = GetTotalCSV_Inner(email); 
+                return res;
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+        public string GetTotalCSV_Inner(string email)
+        {
+            try
+            {
                 double funded_btc = Double.Parse(getSumByTransType(email, "Fund CSV With Bitcoin"));
                 double funded_cc = Double.Parse(getSumByTransType(email, "Fund CSV With CreditCard"));
-                double used = Double.Parse(getSumByTransType(email,"Purchase With CSV"));
-                double received = Double.Parse(getReceiveTotalCSV(email,token_value));
-                double sent = Double.Parse(getSendTotalCSV(email, token_value));
+                double used = Double.Parse(getSumByTransType(email, "Purchase With CSV"));
+                double received = Double.Parse(getReceiveTotalCSV_Inner(email));
+                double sent = Double.Parse(getSendTotalCSV_Inner(email));
                 var res = funded_btc + funded_cc - used + received - sent;
                 return res.ToString();
             }
@@ -2258,7 +2298,7 @@ namespace MintRestApi
                 else
                 {
                     //insertPuchaseGiftWithCSV(sender_email, receiver_email, Decimal.Parse(amount));
-                    Decimal totalCSV = Decimal.Parse(GetTotalCSV(sender_email, token_value));
+                    Decimal totalCSV = Decimal.Parse(GetTotalCSV_Inner(sender_email));
                     if (totalCSV < (Decimal.Parse(amount)))
                         return "Failed";
                     var res_string = insertOrderHistory(sender_email, "Gift CSV", "Gift CSV", receiver_email, Decimal.Parse(amount), 0, "Purchase Gift CSV With CSV", "Complete", "Purchase Gift CSV With CSV", "CSV");
@@ -2608,7 +2648,7 @@ namespace MintRestApi
                 if (type == "Good")
                 {
                     Goods goods = GetGoodsByID(id, token_value);
-                    Decimal totalCSV = Decimal.Parse(GetTotalCSV(email, token_value));
+                    Decimal totalCSV = Decimal.Parse(GetTotalCSV_Inner(email));
                     if (totalCSV < (Decimal.Parse(goods.price) + Decimal.Parse(goods.tax)))
                         return "Failed";
                     res = insertOrderHistory(email, goods.name, goods.description, goods.merchant, Decimal.Parse(goods.price), Decimal.Parse(goods.tax), "Purchase With CSV", "Complete", id, "CSV");
@@ -2617,7 +2657,7 @@ namespace MintRestApi
                 if (type == "Order")
                 {
                     OrderHistory order = GetOrder(email, id, token_value);
-                    Decimal totalCSV = Decimal.Parse(GetTotalCSV(email, token_value));
+                    Decimal totalCSV = Decimal.Parse(GetTotalCSV_Inner(email));
                     if (totalCSV < (Decimal.Parse(order.price) + Decimal.Parse(order.tax)))
                         return "Failed";
                     int t = commitOrderHistory(id, email, "Purchase With CSV", "Complete", "CSV");
@@ -2655,7 +2695,7 @@ namespace MintRestApi
                 if (type == "Good")
                 {
                     Goods goods = GetGoodsByID(id, token_value);
-                    Decimal totalCSV = Decimal.Parse(GetTotalCSV(email, token_value));
+                    Decimal totalCSV = Decimal.Parse(GetTotalCSV_Inner(email));
                     if (totalCSV < (Decimal.Parse(goods.price) + Decimal.Parse(goods.tax)))
                         return "Failed";
                     res = insertOrderHistory(email, goods.name, goods.description, goods.merchant, Decimal.Parse(goods.price), Decimal.Parse(goods.tax), "Purchase With CSV", "Complete", id, "CSV");
@@ -2664,7 +2704,7 @@ namespace MintRestApi
                 if (type == "Order")
                 {
                     OrderHistory order = GetOrder(email, id, token_value);
-                    Decimal totalCSV = Decimal.Parse(GetTotalCSV(email, token_value));
+                    Decimal totalCSV = Decimal.Parse(GetTotalCSV_Inner(email));
                     if (totalCSV < (Decimal.Parse(order.price) + Decimal.Parse(order.tax)))
                         return "Failed";
                     int t = commitOrderHistory(id, email, "Purchase With CSV", "Complete", "CSV");

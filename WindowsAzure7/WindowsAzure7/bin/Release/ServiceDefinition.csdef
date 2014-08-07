@@ -8,7 +8,7 @@
 
   **********************************************************************************************
 -->
-<ServiceDefinition name="WindowsAzure7" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-10.2.2">
+<ServiceDefinition name="WindowsAzure7" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2014-06.2.4">
   <WebRole name="MintRestApi" vmsize="Small">
     <Sites>
       <Site name="Web">
@@ -39,9 +39,10 @@
     <LocalResources>
       <LocalStorage name="MintRestApi.svclog" sizeInMB="1000" cleanOnRoleRecycle="false" />
     </LocalResources>
+    <Certificates></Certificates>
     <Contents>
       <Content destination=".\">
-        <SourceDirectory path="D:\API\WindowsAzure7\WindowsAzure7\rcf\Release\MintRestApiContent\" />
+        <SourceDirectory path="C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Release\MintRestApiContent\" />
       </Content>
     </Contents>
   </WebRole>
