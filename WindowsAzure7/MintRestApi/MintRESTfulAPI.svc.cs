@@ -564,6 +564,89 @@ namespace MintRestApi
             }
         }
 
+        public void insertNotification(string email, string content1, string content2)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        command.CommandText = "insert_Notification";
+                        command.Parameters.AddWithValue("@email", email);
+                        command.Parameters.AddWithValue("@content1", content1);
+                        command.Parameters.AddWithValue("@content2", content2);
+                        command.CommandType = CommandType.StoredProcedure;
+                        int rowsAdded = command.ExecuteNonQuery();
+                        conn.Close();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public Notification[] getNotification(string email)
+        {
+            try
+            {
+                ArrayList list = new ArrayList();
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        command.CommandText = "get_Notification";
+                        command.Parameters.AddWithValue("@email", email);
+                        command.CommandType = CommandType.StoredProcedure;
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            // Loop over the results
+                            while (reader.Read())
+                            {
+                                Notification noti = new Notification(reader["email"].ToString().Trim(), reader["uri"].ToString().Trim(), reader["content1"].ToString().Trim(), reader["content2"].ToString().Trim());
+                                list.Add(noti);
+                            }
+                        }
+                        conn.Close();
+                    }
+                }
+                return list;
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public void deleteNotification(string email)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        command.CommandText = "delete_Notification";
+                        command.Parameters.AddWithValue("@email", email);
+                        command.CommandType = CommandType.StoredProcedure;
+                        int rowsAdded = command.ExecuteNonQuery();
+                        conn.Close();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
 
         public string EmailToPuid(string email)
         {
@@ -1250,6 +1333,7 @@ namespace MintRestApi
                 throw e;
             }
         }
+        
         public string GetTotalCSV_Inner(string email)
         {
             try
@@ -2292,7 +2376,7 @@ namespace MintRestApi
                     var res_string = insertOrderHistory(sender_email, "Gift CSV", "Gift CSV", receiver_email, Decimal.Parse(amount), 0, "Purchase Gift CSV With CreditCard", "Complete", "Purchase Gift CSV With CreditCard", "CreditCard");
                     insertOrderHistory(receiver_email, "Gift CSV", "Gift CSV", sender_email, Decimal.Parse(amount), 0, "Receive Gift CSV", "Complete", "Gift CSV With CreditCard from " + sender_email, "CreditCard");
                     var uri = EmailToURI(receiver_email);
-                    sendNotification(uri, sender_email, "has sent " + amount.ToString() + " CSV to you.");
+                    sendNotification(receiver_email, uri, sender_email, "has sent " + amount.ToString() + " CSV to you.");
                     return res_string;
                 }
                 else
@@ -2304,7 +2388,7 @@ namespace MintRestApi
                     var res_string = insertOrderHistory(sender_email, "Gift CSV", "Gift CSV", receiver_email, Decimal.Parse(amount), 0, "Purchase Gift CSV With CSV", "Complete", "Purchase Gift CSV With CSV", "CSV");
                     insertOrderHistory(receiver_email, "Gift CSV", "Gift CSV", sender_email, Decimal.Parse(amount), 0, "Receive Gift CSV", "Complete", "Gift CSV With CreditCard from " + sender_email, "CSV");
                     var uri = EmailToURI(receiver_email);
-                    sendNotification(uri, sender_email, "has sent " + amount.ToString() + " CSV to you.");
+                    sendNotification(receiver_email, uri, sender_email, "has sent " + amount.ToString() + " CSV to you.");
                     return res_string;
                 }
                 
@@ -2840,7 +2924,7 @@ namespace MintRestApi
         }
 
         #region Notification
-        public void sendNotification(string subscriptionUri, string content1,string content2)
+        public void sendNotification(string email, string subscriptionUri, string content1,string content2)
         {
             try
             {
@@ -2889,6 +2973,10 @@ namespace MintRestApi
                 string notificationChannelStatus = response.Headers["X-SubscriptionStatus"];
                 string deviceConnectionStatus = response.Headers["X-DeviceConnectionStatus"];
 
+                if (notificationStatus.Equals("Received") == false)
+                {
+                    storeNotification(email, content1, content2);
+                }
                 // Display the response from the Microsoft Push Notification Service.  
                 // Normally, error handling code would be here. In the real world, because data connections are not always available,
                 // notifications may need to be throttled back if the device cannot be reached.
@@ -2912,6 +3000,43 @@ namespace MintRestApi
                 }
                 updateURI(email, uri);
                 return "Success";
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public void storeNotification(string email, string content1, string content2)
+        {
+            try
+            {
+                insertNotification(email, content1, content2);
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public string resendNotification(string email, string token_value)
+        {
+            try
+            {
+                bool trusted = veritySecurity(token_value, email);
+                if (!trusted)
+                {
+                    return "Untrusted Client Request";
+                }
+                Notification[] noti_array = getNotification(email);
+                deleteNotification(email);
+                foreach(var noti in noti_array)
+                {
+                    sendNotification(noti.email, noti.uri, noti.content1, noti.content2);
+                }
+                return "success";
             }
             catch (Exception e)
             {
