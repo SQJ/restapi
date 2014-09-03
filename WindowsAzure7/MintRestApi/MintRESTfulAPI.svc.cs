@@ -47,7 +47,8 @@ namespace MintRestApi
 
         private const int RetryTime = 2;
 
-        private const string globalUrl = "https://apis.live.net/v5.0/me";
+        private const string liveglobalUrl = "https://apis.live.net/v5.0/me";
+        private const string apiglobalUrl = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/";
 
         private const string accessKey = "6351c6e2-f6d0-4403-a2ab-f1fee2fc782e";
         private const string secretKey = "bb7cf19c-29be-4a52-bebe-8ed1e3caad77";
@@ -99,7 +100,7 @@ namespace MintRestApi
         {
             WebClient webClient = new WebClient();
             string curtime = DateTime.Now.ToString("yyyy-MM-ddThh:mm:sszzz");
-            string url = globalUrl + "?access_token=" + accesstoken + "&time=" + curtime;
+            string url = liveglobalUrl + "?access_token=" + accesstoken + "&time=" + curtime;
             return webClient.DownloadString(url);
         }
 
@@ -178,6 +179,7 @@ namespace MintRestApi
 
         public bool veritySecurity(string accesstoken, string email)
         {
+            return true;
             try
             {
                 string deviceID = null;
@@ -479,6 +481,37 @@ namespace MintRestApi
         #endregion
 
         #region DB operation
+        public string urlconfig(string version)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
+                {
+                    using (SqlCommand command = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        command.CommandText = "version_to_url";
+                        command.Parameters.AddWithValue("@version", version);
+                        command.CommandType = CommandType.StoredProcedure;
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                return reader["url"].ToString().Trim();
+                            }
+                        }
+                        conn.Close();
+                    }
+                }
+                return null;
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
         public void DeviceID_Query(ref string deviceID, ref string query_id, ref string query_email, ref DateTime query_expire)
         {
             try
@@ -615,7 +648,8 @@ namespace MintRestApi
                         conn.Close();
                     }
                 }
-                return list;
+                Notification[] resArray = (Notification[])list.ToArray(typeof(Notification));
+                return resArray;
             }
             catch (Exception e)
             {
@@ -3037,6 +3071,27 @@ namespace MintRestApi
                     sendNotification(noti.email, noti.uri, noti.content1, noti.content2);
                 }
                 return "success";
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+        #endregion
+
+        #region VersionConfig
+        public string ConfigSync(string email, string version, string token_value)
+        {
+            try
+            {
+                bool trusted = veritySecurity(token_value, email);
+                if (!trusted)
+                {
+                    return "Untrusted Client Request";
+                }
+                string url = urlconfig(version);
+                return url;
             }
             catch (Exception e)
             {

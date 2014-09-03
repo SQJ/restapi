@@ -17,6 +17,10 @@ namespace MintRestApi
     public interface IMintRESTfulAPI
     {
         [OperationContract]
+        [WebGet(UriTemplate = "ConfigSync/{email}/{version}?access_token={token_value}")]
+        string ConfigSync(string email, string version, string token_value);
+        
+        [OperationContract]
         [WebGet(UriTemplate = "TotalSent/{email}?access_token={token_value}")]
         string getSendTotalCSV(string email, string token_value);
 
