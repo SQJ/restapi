@@ -29,6 +29,7 @@ using System.Globalization;
 using CMATType = MS.Support.CMATGateway.Proxy.SCS;
 using System.Xml.Serialization;
 using System.ServiceModel.Web;
+using System.Xml;
 
 namespace MintRestApi
 {
@@ -291,16 +292,20 @@ namespace MintRestApi
             return res;
         }
 
-        public string GetAccount(string email, string token_value)
+        public AccountInfo GetAccount(string email, string token_value)
         {
             //var version = WebOperationContext.Current.IncomingRequest.Headers["User-Agent"];
             //return version;
             try
-            {               
+            {
+                AccountInfo accinfo = new AccountInfo();
+                
                 bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
-                    return "Untrusted Client Request";
+
+                    accinfo.securitystatus = "Untrusted Client Request";
+                    return accinfo;
                 }
                 var puid = EmailToPuid(email);
                 var request = new GetAccountInput
@@ -344,11 +349,15 @@ namespace MintRestApi
 
                 if (res.Ack == AckCodeType.Success)
                 {
-                    return res.AccountOutputInfo.FirstOrDefault().AccountID;
+                    accinfo.account = res.AccountOutputInfo.FirstOrDefault().AccountID;
+                    accinfo.puid = puid;
+                    accinfo.securitystatus = "Secure";
+                    return accinfo;
                 }
                 else
                 {
-                    return res.Error.ErrorShortMessage;
+                    accinfo.securitystatus = res.Error.ErrorShortMessage;
+                    return accinfo;
                 }
             }
             catch (Exception e)
@@ -358,67 +367,6 @@ namespace MintRestApi
             }
         }
 
-        public string CreateAccount(string email, string puid)
-        {
-            try
-            {
-                var input = new CreateAccountInput
-                {
-                    CallerInfo = new CallerInfo
-                    {
-                        Requester = BuildIdentityFromAccountWithPuid(puid),
-                        Delegator = new Identity
-                        {
-                            IdentityType = "PUID",
-                            IdentityValue = defaultIdentityValue
-                        },
-                    },
-                    APIContext = new APIContext
-                    {
-                        TrackingGuid = Guid.NewGuid(),
-                    },
-                    AccountInputInfo = new AccountInfo
-                    {
-                        PayinInfo = new PayinAccountInfo
-                        {
-                            AnniversaryDate = 0,
-                            CountryCode = "US",
-                            Currency = "USD",
-                            CustomerType = CustomerType.Personal,
-                            Email = email,
-                            FirstName = "FirstName",
-                            FriendlyName = email,
-                            LastName = "LastName",
-                            Locale = "en-US",
-                        },
-                        PayoutInfo = new PayoutAccountInfo
-                        {
-                            AnniversaryDate = 0,
-                            CountryCode = "US",
-                            Currency = "USD",
-                            Email = email,
-                            Locale = "en-US",
-                        }
-                    },
-                    OnBehalfOfPartner = Guid.Parse("00000000-0000-0000-0000-000000000000"),
-                };
-                CTPApiClient client = new CTPApiClient(config);
-                var res = client.CreateAccount(input);
-                if (res.Ack == AckCodeType.Success)
-                {
-                    return res.AccountOutputInfo.AccountID;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                throw e;
-            }
-        }
 
         public string GetAccountWithPuid(string puid)
         {
@@ -686,6 +634,25 @@ namespace MintRestApi
         {
             try
             {
+                if (email.Contains("-int.com"))
+                {
+                    string puid = null;
+                    GetPUID getP = new GetPUID();
+                    string idString = getP.getpuid(email);
+                    
+                    using (XmlReader reader = XmlReader.Create(new StringReader(idString)))
+                    {
+                        reader.ReadToFollowing("SigninName");
+                        reader.MoveToFirstAttribute();
+                        puid = reader.Value;
+                        puid = Convert.ToString(Convert.ToInt64(puid, 16),10);
+                        
+
+                    }
+
+                    return puid;
+
+                }
                 int count;
                 using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
                 {

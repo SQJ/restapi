@@ -34,8 +34,8 @@ namespace MintRestApi
 
         [OperationContract]
         [WebGet(UriTemplate = "Account/{email}?access_token={token_value}")]
-        string GetAccount(string email, string token_value);
-
+        AccountInfo GetAccount(string email, string token_value);
+        
         [OperationContract]
         [WebGet(UriTemplate = "PI/{email}?access_token={token_value}")]
         PIType.PaymentInstrument[] GetPI(string email, string token_value);
@@ -137,6 +137,18 @@ namespace MintRestApi
         [WebGet(UriTemplate = "updateURI/{email}?uri={uri}&access_token={token_value}")]
         string updateURI(string email, string uri, string token_value);
 
+    }
+    [DataContract]
+    public class AccountInfo
+    {
+        [DataMember]
+        public string account { get; set; }
+
+        [DataMember]
+        public string puid { get; set; }
+
+        [DataMember]
+        public string securitystatus {get;set;}
     }
 
     [DataContract]

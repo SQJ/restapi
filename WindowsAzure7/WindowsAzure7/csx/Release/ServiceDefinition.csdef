@@ -22,6 +22,8 @@
     <Endpoints>
       <InputEndpoint name="Endpoint1" protocol="http" port="80" localPort="80" />
     </Endpoints>
-    <Certificates />
+    <Certificates>
+      <Certificate name="spk-partner-azurecsr-int" storeLocation="LocalMachine" storeName="My" />
+    </Certificates>
   </WebRole>
 </ServiceDefinition>

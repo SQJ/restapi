@@ -110,6 +110,14 @@
       <DependentUpon>spsschema.xsd</DependentUpon>
     </Compile>
     <Compile Include="Proxy\STS\Limit.cs" />
+    <Compile Include="Puid\CertificateHelper.cs" />
+    <Compile Include="Puid\CredentialService.cs" />
+    <Compile Include="Puid\CredentialSoapProxy.cs" />
+    <Compile Include="Puid\Passport.cs" />
+    <Compile Include="Puid\Program.cs" />
+    <Compile Include="Puid\ServiceAPISoapProxy.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="RawContentTypeMapper.cs" />
     <Compile Include="SettingsFacade.cs" />
     <Compile Include="URLMessage.cs" />

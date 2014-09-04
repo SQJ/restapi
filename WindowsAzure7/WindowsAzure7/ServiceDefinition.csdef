@@ -31,6 +31,7 @@
       <LocalStorage name="MintRestApi.svclog" sizeInMB="1000" cleanOnRoleRecycle="false" />
     </LocalResources>
     <Certificates>
+      <Certificate name="spk-partner-azurecsr-int" storeLocation="LocalMachine" storeName="My" />
     </Certificates>
   </WebRole>
 </ServiceDefinition>

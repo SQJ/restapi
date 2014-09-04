@@ -268,9 +268,9 @@ namespace Microsoft.CTP.SDK.Client
             object serviceClient = Activator.CreateInstance(ClientType, new object[2] { binding, endpointAddress });
             ServiceEndpoint endpoint = (ServiceEndpoint)serviceClient.GetType().GetProperty("Endpoint").GetValue(serviceClient, null);
             endpoint.Behaviors.RemoveAll<ClientCredentials>();
-            var cert = FindCert(X509FindType.FindByThumbprint, ((X509Certificate2)Cert).Thumbprint);
-            Trace.TraceInformation("Cert {0}", cert.ClientCertificate.Certificate.Subject.ToString());
-            endpoint.Behaviors.Add(cert);
+            var clientCert = FindCert(X509FindType.FindByThumbprint, ((X509Certificate2)Cert).Thumbprint);
+            Trace.TraceInformation("Cert {0}", clientCert.ClientCertificate.Certificate.Subject.ToString());
+            endpoint.Behaviors.Add(clientCert);
             endpoint.Contract.Name = ContractName;
             return serviceClient;
         }

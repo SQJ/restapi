@@ -39,7 +39,9 @@
     <LocalResources>
       <LocalStorage name="MintRestApi.svclog" sizeInMB="1000" cleanOnRoleRecycle="false" />
     </LocalResources>
-    <Certificates></Certificates>
+    <Certificates>
+      <Certificate name="spk-partner-azurecsr-int" storeLocation="LocalMachine" storeName="My" />
+    </Certificates>
     <Contents>
       <Content destination=".\">
         <SourceDirectory path="C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Release\MintRestApiContent\" />

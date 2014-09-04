@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<serviceModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WindowsAzure7" generation="1" functional="0" release="0" Id="6f0de1e6-6177-4d6d-9c82-ee27504bf3aa" dslVersion="1.2.0.0" xmlns="http://schemas.microsoft.com/dsltools/RDSM">
+<serviceModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WindowsAzure7" generation="1" functional="0" release="0" Id="6df767f6-6ad1-428f-82cd-5b457bbdaef6" dslVersion="1.2.0.0" xmlns="http://schemas.microsoft.com/dsltools/RDSM">
   <groups>
     <group name="WindowsAzure7Group" generation="1" functional="0" release="0">
       <componentports>
@@ -10,6 +10,11 @@
         </inPort>
       </componentports>
       <settings>
+        <aCS name="Certificate|MintRestApi:spk-partner-azurecsr-int" defaultValue="">
+          <maps>
+            <mapMoniker name="/WindowsAzure7/WindowsAzure7Group/MapCertificate|MintRestApi:spk-partner-azurecsr-int" />
+          </maps>
+        </aCS>
         <aCS name="MintRestApi:DiagInfrastuctureLogLevel" defaultValue="">
           <maps>
             <mapMoniker name="/WindowsAzure7/WindowsAzure7Group/MapMintRestApi:DiagInfrastuctureLogLevel" />
@@ -84,6 +89,11 @@
         </lBChannel>
       </channels>
       <maps>
+        <map name="MapCertificate|MintRestApi:spk-partner-azurecsr-int" kind="Identity">
+          <certificate>
+            <certificateMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi/spk-partner-azurecsr-int" />
+          </certificate>
+        </map>
         <map name="MapMintRestApi:DiagInfrastuctureLogLevel" kind="Identity">
           <setting>
             <aCSMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi/DiagInfrastuctureLogLevel" />
@@ -176,6 +186,16 @@
               <resourceReference name="MintRestApi.svclog" defaultAmount="[1000,1000,1000]" defaultSticky="true" kind="Directory" />
               <resourceReference name="EventStore" defaultAmount="[1000,1000,1000]" defaultSticky="false" kind="LogStore" />
             </resourcereferences>
+            <storedcertificates>
+              <storedCertificate name="Stored0spk-partner-azurecsr-int" certificateStore="My" certificateLocation="System">
+                <certificate>
+                  <certificateMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi/spk-partner-azurecsr-int" />
+                </certificate>
+              </storedCertificate>
+            </storedcertificates>
+            <certificates>
+              <certificate name="spk-partner-azurecsr-int" />
+            </certificates>
           </role>
           <sCSPolicy>
             <sCSPolicyIDMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApiInstances" />
@@ -192,9 +212,9 @@
     </group>
   </groups>
   <implements>
-    <implementation Id="31616725-7474-479e-91c9-0121967ba48c" ref="Microsoft.RedDog.Contract\ServiceContract\WindowsAzure7Contract@ServiceDefinition">
+    <implementation Id="4234ff02-84fe-4df0-b61c-84679e97994f" ref="Microsoft.RedDog.Contract\ServiceContract\WindowsAzure7Contract@ServiceDefinition">
       <interfacereferences>
-        <interfaceReference Id="8fc78259-a56b-4e2f-9995-0bffed00918e" ref="Microsoft.RedDog.Contract\Interface\MintRestApi:Endpoint1@ServiceDefinition">
+        <interfaceReference Id="57fc8fbb-cf03-4f59-b2c5-0f6069f0a268" ref="Microsoft.RedDog.Contract\Interface\MintRestApi:Endpoint1@ServiceDefinition">
           <inPort>
             <inPortMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi:Endpoint1" />
           </inPort>

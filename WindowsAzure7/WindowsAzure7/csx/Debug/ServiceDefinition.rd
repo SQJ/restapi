@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<serviceModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WindowsAzure7" generation="1" functional="0" release="0" Id="717459ee-b0cc-4ccf-b005-806e195d4182" dslVersion="1.2.0.0" xmlns="http://schemas.microsoft.com/dsltools/RDSM">
+<serviceModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WindowsAzure7" generation="1" functional="0" release="0" Id="a9680108-5a89-44af-8275-751ac38cfaf8" dslVersion="1.2.0.0" xmlns="http://schemas.microsoft.com/dsltools/RDSM">
   <groups>
     <group name="WindowsAzure7Group" generation="1" functional="0" release="0">
       <componentports>
@@ -10,6 +10,11 @@
         </inPort>
       </componentports>
       <settings>
+        <aCS name="Certificate|MintRestApi:MintCertificate" defaultValue="">
+          <maps>
+            <mapMoniker name="/WindowsAzure7/WindowsAzure7Group/MapCertificate|MintRestApi:MintCertificate" />
+          </maps>
+        </aCS>
         <aCS name="MintRestApi:DiagInfrastuctureLogLevel" defaultValue="">
           <maps>
             <mapMoniker name="/WindowsAzure7/WindowsAzure7Group/MapMintRestApi:DiagInfrastuctureLogLevel" />
@@ -84,6 +89,11 @@
         </lBChannel>
       </channels>
       <maps>
+        <map name="MapCertificate|MintRestApi:MintCertificate" kind="Identity">
+          <certificate>
+            <certificateMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi/MintCertificate" />
+          </certificate>
+        </map>
         <map name="MapMintRestApi:DiagInfrastuctureLogLevel" kind="Identity">
           <setting>
             <aCSMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi/DiagInfrastuctureLogLevel" />
@@ -152,7 +162,7 @@
       </maps>
       <components>
         <groupHascomponents>
-          <role name="MintRestApi" generation="1" functional="0" release="0" software="D:\GitHub\restapi\restapi\WindowsAzure7\WindowsAzure7\csx\Debug\roles\MintRestApi" entryPoint="base\x64\WaHostBootstrapper.exe" parameters="base\x64\WaIISHost.exe " memIndex="-1" hostingEnvironment="frontendadmin" hostingEnvironmentVersion="2">
+          <role name="MintRestApi" generation="1" functional="0" release="0" software="C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\WindowsAzure7\csx\Debug\roles\MintRestApi" entryPoint="base\x64\WaHostBootstrapper.exe" parameters="base\x64\WaIISHost.exe " memIndex="-1" hostingEnvironment="frontendadmin" hostingEnvironmentVersion="2">
             <componentports>
               <inPort name="Endpoint1" protocol="http" portRanges="80" />
             </componentports>
@@ -176,6 +186,16 @@
               <resourceReference name="MintRestApi.svclog" defaultAmount="[1000,1000,1000]" defaultSticky="true" kind="Directory" />
               <resourceReference name="EventStore" defaultAmount="[1000,1000,1000]" defaultSticky="false" kind="LogStore" />
             </resourcereferences>
+            <storedcertificates>
+              <storedCertificate name="Stored0MintCertificate" certificateStore="My" certificateLocation="System">
+                <certificate>
+                  <certificateMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi/MintCertificate" />
+                </certificate>
+              </storedCertificate>
+            </storedcertificates>
+            <certificates>
+              <certificate name="MintCertificate" />
+            </certificates>
           </role>
           <sCSPolicy>
             <sCSPolicyIDMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApiInstances" />
@@ -192,9 +212,9 @@
     </group>
   </groups>
   <implements>
-    <implementation Id="70d67abc-d6ee-4402-9cbb-561bce8cefcd" ref="Microsoft.RedDog.Contract\ServiceContract\WindowsAzure7Contract@ServiceDefinition">
+    <implementation Id="46814686-d1f0-452e-ba65-64bdb54f7440" ref="Microsoft.RedDog.Contract\ServiceContract\WindowsAzure7Contract@ServiceDefinition">
       <interfacereferences>
-        <interfaceReference Id="ee74afd4-b7d6-455d-8091-99a03ee3a459" ref="Microsoft.RedDog.Contract\Interface\MintRestApi:Endpoint1@ServiceDefinition">
+        <interfaceReference Id="7379f6e0-a2c3-4c92-97d9-10c0e03c93c3" ref="Microsoft.RedDog.Contract\Interface\MintRestApi:Endpoint1@ServiceDefinition">
           <inPort>
             <inPortMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi:Endpoint1" />
           </inPort>

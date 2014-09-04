@@ -3,6 +3,9 @@
   <Operation type="Path" path="base\x64" />
   <Operation type="Path" path="base\x86" />
   <Operation type="Path" path="diagnostics\x64" />
+  <PermissionLevels>
+    <StoredCert name="Stored0MintCertificate" permissionLevel="limitedOrElevated" />
+  </PermissionLevels>
   <AdditionalRoleIdentities>
     <Identity username="NetworkService" domain="NT AUTHORITY" />
   </AdditionalRoleIdentities>
