@@ -24,9 +24,10 @@
       <Setting name="DiagPerfSampleRateSeconds" value="60" />
       <Setting name="DiagInfrastuctureLogLevel" value="Error" />
       <Setting name="DiagWindowsEventLogLevel" value="Error" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Caching.ClientDiagnosticLevel" value="1" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="MintCertificate" thumbprint="326F24A35D0422116DE00E770298A7A8BD802947" thumbprintAlgorithm="sha1" />
+      <Certificate name="spk-partner-azurecsr-int" thumbprint="326F24A35D0422116DE00E770298A7A8BD802947" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

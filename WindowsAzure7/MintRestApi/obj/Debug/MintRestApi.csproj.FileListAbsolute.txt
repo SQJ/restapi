@@ -136,3 +136,16 @@ C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\zh-Hans\S
 C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\zh-Hant\System.Spatial.resources.dll
 C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\obj\Debug\MintRestApi.dll
 C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\obj\Debug\MintRestApi.pdb
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.WindowsAzure.Caching\ClientPerfCountersInstaller.exe
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.WindowsAzure.Caching\PerformanceCounters.xml
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.WindowsAzure.Caching\ClientPerfCountersInstaller.exe.config
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.AzureClientHelper.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.AzureCommon.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.Client.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.Core.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.Web.DistributedCache.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.WindowsFabric.Common.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.WindowsFabric.Data.Common.dll
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.AzureCommon.xml
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.Client.xml
+C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\MintRestApi\bin\Microsoft.ApplicationServer.Caching.Core.xml

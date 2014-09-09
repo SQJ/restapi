@@ -35,6 +35,10 @@ namespace MintRestApi
         [OperationContract]
         [WebGet(UriTemplate = "Account/{email}?access_token={token_value}")]
         AccountInfo GetAccount(string email, string token_value);
+
+        [OperationContract]
+        [WebGet(UriTemplate = "AddPIUrl/{email}?access_token={token_value}")]
+        string GetAddPIUrl(string email, string token_value);
         
         [OperationContract]
         [WebGet(UriTemplate = "PI/{email}?access_token={token_value}")]

@@ -12,6 +12,7 @@
       <Setting name="DiagPerfSampleRateSeconds" />
       <Setting name="DiagTransferPeriodMinutes" />
       <Setting name="DiagWindowsEventLogLevel" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Caching.ClientDiagnosticLevel" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" />
@@ -23,7 +24,7 @@
       <InputEndpoint name="Endpoint1" protocol="http" port="80" localPort="80" />
     </Endpoints>
     <Certificates>
-      <Certificate name="MintCertificate" storeLocation="LocalMachine" storeName="My" />
+      <Certificate name="spk-partner-azurecsr-int" storeLocation="LocalMachine" storeName="My" />
     </Certificates>
   </WebRole>
 </ServiceDefinition>

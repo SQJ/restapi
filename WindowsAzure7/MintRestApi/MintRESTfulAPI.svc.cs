@@ -65,7 +65,9 @@ namespace MintRestApi
 
         private static CTPConfiguration config = new CTPConfiguration(soapServer, certFile);
 
-        public enum QueryStatus { Success, NoDevice, WrongInfo, NoHeader };
+        public enum QueryStatus { Success, NoUser, WrongDevice, NoHeader };
+
+        private static CacheData cachedata = new CacheData();
         
 
         private static string userName = "t-qishen";
@@ -128,13 +130,16 @@ namespace MintRestApi
         public bool verifyURL()
         {
             IncomingWebRequestContext request = WebOperationContext.Current.IncomingRequest;
-            WebHeaderCollection headers = request.Headers;
-
-            
+            WebHeaderCollection headers = request.Headers;        
 
             string guid = headers["GUID"];
 
-            return urlcheck.verifyguid(guid);
+            if (cachedata.getguidAuth(guid) == null)
+            {
+                cachedata.addguidAuth(guid);
+                return true;
+            }
+            else return false;
       
         }
 
@@ -142,29 +147,26 @@ namespace MintRestApi
         {
             // RETURN status: 
             // Success: verity success, need update;
-            // NoDevice: verity fail, No this device, need create if token verified;
-            // WrongInfo verity fail, Wrong email or date, need update if token verified
+            // NoUser: verity fail, No this email account, need create if token verified;
+            // WrongDevice: verity fail, Wrong device id, need update if token verified
             // Noheader: error, No device header
             try
             {
                 IncomingWebRequestContext request = WebOperationContext.Current.IncomingRequest;
                 WebHeaderCollection headers = request.Headers;
 
-                string query_id = null, query_email = null;
-                DateTime query_expire = DateTime.UtcNow;
-
+                string query_id = null;
                 if (headers["UDID"] != null)
                 {
                     deviceID = headers["UDID"];
 
-                    //query in DB, If deviceID not exist or expire or not fit with the email, return false;   
-                    // only if the deviceID fit the email and the expire date, return true; Notice! return true , we should
-                    // update the expire date to nowtime.
-                    DeviceID_Query(ref deviceID, ref query_id, ref query_email, ref query_expire);
+                    //query in cache, If email not exist or not fit with the deviceID, return false;   
+                    // only if the email fit the deviceID a, return true; Notice! return true .                  
+                    DeviceID_Query(email, ref query_id);
 
-                    if (query_id == null) return QueryStatus.NoDevice;
-                    else if (query_email != email || query_expire <= DateTime.UtcNow)
-                        return QueryStatus.WrongInfo;
+                    if (query_id == null) return QueryStatus.NoUser;
+                    else if (query_id != deviceID )
+                        return QueryStatus.WrongDevice;
                     else return QueryStatus.Success;
                }
 
@@ -367,6 +369,30 @@ namespace MintRestApi
             }
         }
 
+        public string GetAddPIUrl(string email, string token_value)
+        {
+            try{
+                bool trusted = veritySecurity(token_value, email);
+                if (!trusted)
+                {
+                    return "Untrusted Client Request";
+                }
+                string puid  =  EmailToPuid(email);
+                string account = GetAccountWithPuid(puid);
+
+                string url = string.Format("https://buy.live-int.com/pcsv2/default/liverps/pcs/managepi?accountid={0}&piid=0&mkt=en-us&ctprpsauth=1&wa=wsignin1.0",  account);
+
+                return url;
+
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+                
+        }
+
 
         public string GetAccountWithPuid(string puid)
         {
@@ -460,27 +486,11 @@ namespace MintRestApi
             }
         }
 
-        public void DeviceID_Query(ref string deviceID, ref string query_id, ref string query_email, ref DateTime query_expire)
+        public void DeviceID_Query( string email ,ref string query_id)
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
-                {
-                    using (SqlCommand command = conn.CreateCommand())
-                    {
-                        conn.Open();
-                        command.CommandText = "querydeviceID";
-                        command.Parameters.AddWithValue("@id", deviceID);
-                        command.CommandType = CommandType.StoredProcedure;
-                        SqlDataReader reader = command.ExecuteReader();
-                        while (reader.Read())
-                        {
-                            query_id = reader["deviceID"].ToString();
-                            query_email = reader["email"].ToString();
-                            query_expire = Convert.ToDateTime(reader["expire"]);
-                        }
-                    }
-                }
+                 query_id = (cachedata.getDeviceAuth(email)).ToString();
             }
             catch (Exception e)
             {
@@ -2898,6 +2908,7 @@ namespace MintRestApi
 
         public string CreateOrder(string email, string token_value, CreateOrderRequest request)
         {
+            
             try
             {
                 //check for access auth
