@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,7 +14,68 @@ namespace MintRestApi.BTCC
 {
     public class BTCService
     {
-        
+        private const string accessKey = "6351c6e2-f6d0-4403-a2ab-f1fee2fc782e";
+        private const string secretKey = "bb7cf19c-29be-4a52-bebe-8ed1e3caad77";
+        private const string url = "https://api.btcchina.com/api.php/payment";
+        private const string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
+        private const string method = "createPurchaseOrder";
+
+        public static Response GetPurchaseOrder(string id)
+        {
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+                string method = "getPurchaseOrder";
+                string param = string.Format("{0}", id);
+                TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
+                long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
+                string tonce = Convert.ToString(milliSeconds);
+                NameValueCollection parameters = new NameValueCollection() { 
+                    { "tonce", tonce },
+                    { "accesskey", accessKey },
+                    { "requestmethod", "post" },
+                    { "id", "1" },
+                    { "method", method },
+                    { "params", param } 
+                };
+                string paramsHash = GetHMACSHA1Hash(secretKey, BuildQueryString(parameters));
+                string base64String = Convert.ToBase64String(
+                Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
+                string url = "https://api.btcchina.com/api.php/payment";
+                string postData = "{\"method\": \"" + method + "\", \"params\": [" + id + "], \"id\": 1}";
+                var res = SendPostByWebRequest(url, base64String, tonce, postData);
+                return res;
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
+        }
+
+        public static Response CreateBTCOrder(string amount, string id)
+        {
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            string param = amount + ",USD," + callback_url + "," + callback_url + "," + id + ",Funding CSV";
+            TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
+            long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
+            string tonce = Convert.ToString(milliSeconds);
+            NameValueCollection parameters = new NameValueCollection() { 
+                    { "tonce", tonce },
+                    { "accesskey", accessKey },
+                    { "requestmethod", "post" },
+                    { "id", "1" },
+                    { "method", method },
+                    { "params", param } 
+                };
+            string paramsHash = BTCService.GetHMACSHA1Hash(secretKey, BTCService.BuildQueryString(parameters));
+            string base64String = Convert.ToBase64String(
+            Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
+            string postData = "{\"method\": \"" + method + "\", \"params\": [" + amount + ",\"USD\",\"" + callback_url + "\",\"" + callback_url + "\",\"" + id + "\",\"Funding CSV\"], \"id\": 1}";
+            Response res = BTCService.SendPostByWebRequest(url, base64String, tonce, postData);
+            return res;
+        }
+
         public static Response SendPostByWebRequest(string url, string base64, string tonce, string postData)
         {
             WebRequest webRequest = WebRequest.Create(url);

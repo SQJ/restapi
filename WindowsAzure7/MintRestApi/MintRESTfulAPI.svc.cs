@@ -66,7 +66,7 @@ namespace MintRestApi
 
         private static CTPConfiguration config = new CTPConfiguration(soapServer, certFile);
 
-        public enum QueryStatus { Success, NoUser, WrongDevice, NoHeader };
+        public enum QueryStatus { Success, NoUser, WrongDevice, NoHeader, NoDevice, WrongInfo };
 
         private static CacheData cachedata = new CacheData();
         
@@ -2481,32 +2481,10 @@ namespace MintRestApi
                 }
                 string id;
                 id = insertOrderHistory(email, "CSV", "CSV", "Microsoft", Decimal.Parse(amount), 0, "Fund CSV With Bitcoin", "Created", "Fund CSV With Bitcoin", "BTC");
-
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-                string method = "createPurchaseOrder";
-                string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
-                string param = amount + ",USD," + callback_url + "," + callback_url + "," + id + ",Funding CSV";
-                TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
-                long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
-                string tonce = Convert.ToString(milliSeconds);
-                NameValueCollection parameters = new NameValueCollection() { 
-                    { "tonce", tonce },
-                    { "accesskey", accessKey },
-                    { "requestmethod", "post" },
-                    { "id", "1" },
-                    { "method", method },
-                    { "params", param } 
-                };
-                string paramsHash = BTCService.GetHMACSHA1Hash(secretKey, BTCService.BuildQueryString(parameters));
-                string base64String = Convert.ToBase64String(
-                Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
-                string url = "https://api.btcchina.com/api.php/payment";
-                string postData = "{\"method\": \"" + method + "\", \"params\": [" + amount + ",\"USD\",\"" + callback_url + "\",\"" + callback_url + "\",\"" + id + "\",\"Funding CSV\"], \"id\": 1}";
-                //res.id = postData + param;
-                Response res = BTCService.SendPostByWebRequest(url, base64String, tonce, postData);
+                Response res = BTCService.CreateBTCOrder(amount, id);
                 if (res.result != null)
                 {
-                    //insert into database
+                    return("Failed");
                 }
                 return res.result.url;
             }
@@ -2519,133 +2497,82 @@ namespace MintRestApi
 
         public Response PurchaseWithBTC(string email, string type, string id, string token_value)
         {
-            Response res = new Response();
-            double total;
-            if (type == "Good")
+            try
             {
-                Goods goods = GetGoodsByID(id, token_value);
-                res.id = insertOrderHistory(email, goods.name, goods.description, goods.merchant, Decimal.Parse(goods.price), Decimal.Parse(goods.tax), "Purchase With Bitcoin", "Created", id, "BTC");
-                id = res.id;
-                total = Double.Parse(goods.price) + Double.Parse(goods.tax);
-            }
-            else
-            {
-                OrderHistory order = GetOrder(email, id, token_value);
-                total = Double.Parse(order.price) + Double.Parse(order.tax);
-                int t = commitOrderHistory(id, email, "Purchase With Bitcoin", "Created", "BTC");
-                if (t > 0)
-                    res.id = id;
+                bool trusted = veritySecurity(token_value, email);
+                if (!trusted)
+                {
+                    return null;
+                }
+                Response res = new Response();
+                double total;
+                if (type == "Good")
+                {
+                    Goods goods = GetGoodsByID(id, token_value);
+                    res.id = insertOrderHistory(email, goods.name, goods.description, goods.merchant, Decimal.Parse(goods.price), Decimal.Parse(goods.tax), "Purchase With Bitcoin", "Created", id, "BTC");
+                    id = res.id;
+                    total = Double.Parse(goods.price) + Double.Parse(goods.tax);
+                }
                 else
-                    res.id = "Failed";
+                {
+                    OrderHistory order = GetOrder(email, id, token_value);
+                    total = Double.Parse(order.price) + Double.Parse(order.tax);
+                    int t = commitOrderHistory(id, email, "Purchase With Bitcoin", "Created", "BTC");
+                    if (t > 0)
+                        res.id = id;
+                    else
+                        res.id = "Failed";
+                }
+                res = BTCService.CreateBTCOrder(total.ToString(), id);
+                return res;
             }
-            // For https.
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            string method = "createPurchaseOrder";
-            string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
-            string param = total.ToString() + ",USD," + callback_url + "," + callback_url + "," + id + ",BTC Order";
-            TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
-            string tonce = Convert.ToString(milliSeconds);
-            NameValueCollection parameters = new NameValueCollection() { 
-                { "tonce", tonce },
-                { "accesskey", accessKey },
-                { "requestmethod", "post" },
-                { "id", "1" },
-                { "method", method },
-                { "params", param } 
-            };
-            string paramsHash = GetHMACSHA1Hash(secretKey, BuildQueryString(parameters));
-            string base64String = Convert.ToBase64String(
-            Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
-            string url = "https://api.btcchina.com/api.php/payment";
-            string postData = "{\"method\": \"" + method + "\", \"params\": [" + total.ToString() + ",\"USD\",\"" + callback_url + "\",\"" + callback_url + "\",\"" + id + "\",\"BTC Order\"], \"id\": 1}";
-            //res.id = postData + param;
-            res = SendPostByWebRequest(url, base64String, tonce, postData);
-            if (res.result != null)
+            catch (Exception e)
             {
-                //insert into database
+                Trace.TraceError(e.ToString());
+                throw e;
             }
-            return res;
         }
 
         public Response PurchaseWithBTCByToken(string email, string token, string token_value)
         {
-            string[] parse_result = parse_token(token, token_value);
-            string id = parse_result[0];
-            string type = parse_result[1];
-            Response res = new Response();
-            double total;
-            if (type == "Good")
+            try
             {
-                Goods goods = GetGoodsByID(id, token_value);
-                res.id = insertOrderHistory(email, goods.name, goods.description, goods.merchant, Decimal.Parse(goods.price), Decimal.Parse(goods.tax), "Purchase With Bitcoin", "Created", id, "BTC");
-                id = res.id;
-                total = Double.Parse(goods.price) + Double.Parse(goods.tax);
+                bool trusted = veritySecurity(token_value, email);
+                if (!trusted)
+                {
+                    return null;
+                }
+                string[] parse_result = parse_token(token, token_value);
+                string id = parse_result[0];
+                string type = parse_result[1];
+                Response res = new Response();
+                res = PurchaseWithBTC(email, type, id, token_value);
+                return res;
             }
-            else
+            catch (Exception e)
             {
-                OrderHistory order = GetOrder(email, id, token_value);
-                total = Double.Parse(order.price) + Double.Parse(order.tax);
-                int t = commitOrderHistory(id, email, "Purchase With Bitcoin", "Created", "BTC");
-                if (t > 0)
-                    res.id = id;
-                else
-                    res.id = "Failed";
+                Trace.TraceError(e.ToString());
+                throw e;
             }
-            // For https.
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            string method = "createPurchaseOrder";
-            string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
-            string param = total.ToString() + ",USD," + callback_url + "," + callback_url + "," + id + ",TestOrder";
-            TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
-            string tonce = Convert.ToString(milliSeconds);
-            NameValueCollection parameters = new NameValueCollection() { 
-                { "tonce", tonce },
-                { "accesskey", accessKey },
-                { "requestmethod", "post" },
-                { "id", "1" },
-                { "method", method },
-                { "params", param } 
-            };
-            string paramsHash = BTCService.GetHMACSHA1Hash(secretKey, BTCService.BuildQueryString(parameters));
-            string base64String = Convert.ToBase64String(
-            Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
-            string url = "https://api.btcchina.com/api.php/payment";
-            string postData = "{\"method\": \"" + method + "\", \"params\": [" + total.ToString() + ",\"USD\",\"" + callback_url + "\",\"" + callback_url + "\",\"" + id + "\",\"TestOrder\"], \"id\": 1}";
-            //res.id = postData + param;
-            res = BTCService.SendPostByWebRequest(url, base64String, tonce, postData);
-            return res;
         }
 
-        public Response GetPurchaseOrder(string email, string id)
+        public Response GetPurchaseOrder(string email, string id, string token_value)
         {
-            // For https.
-            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            string method = "getPurchaseOrder";
-            string param = string.Format("{0}", id);
-            TimeSpan timeSpan = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            long milliSeconds = Convert.ToInt64(timeSpan.TotalMilliseconds * 1000);
-            string tonce = Convert.ToString(milliSeconds);
-            NameValueCollection parameters = new NameValueCollection() { 
-                { "tonce", tonce },
-                { "accesskey", accessKey },
-                { "requestmethod", "post" },
-                { "id", "1" },
-                { "method", method },
-                { "params", param } 
-            };
-            string paramsHash = GetHMACSHA1Hash(secretKey, BuildQueryString(parameters));
-            string base64String = Convert.ToBase64String(
-            Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
-            string url = "https://api.btcchina.com/api.php/payment";
-            string postData = "{\"method\": \"" + method + "\", \"params\": ["+ id + "], \"id\": 1}";
-            var res = SendPostByWebRequest(url, base64String, tonce, postData);
-            if (res.result != null)
+            try
             {
-                //update database
+                bool trusted = veritySecurity(token_value, email);
+                if (!trusted)
+                {
+                    return null;
+                }
+                Response res = BTCService.GetPurchaseOrder(id);
+                return res;
             }
-            return res;
+            catch (Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                throw e;
+            }
         }
 
 

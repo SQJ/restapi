@@ -110,6 +110,7 @@
     <Compile Include="AzureLocalStorageTraceListener.cs" />
     <Compile Include="BaseRole.cs" />
     <Compile Include="bdk.cs" />
+    <Compile Include="BTCC\BTCService.cs" />
     <Compile Include="Cache\CacheData.cs" />
     <Compile Include="ClientBase.cs" />
     <Compile Include="CTPApiClient.cs" />

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<serviceModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WindowsAzure7" generation="1" functional="0" release="0" Id="4bd1e9f2-3b41-4907-a458-ac794ab368ac" dslVersion="1.2.0.0" xmlns="http://schemas.microsoft.com/dsltools/RDSM">
+<serviceModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WindowsAzure7" generation="1" functional="0" release="0" Id="0c70e18d-24a4-4ab0-bb4c-965cb14279f2" dslVersion="1.2.0.0" xmlns="http://schemas.microsoft.com/dsltools/RDSM">
   <groups>
     <group name="WindowsAzure7Group" generation="1" functional="0" release="0">
       <componentports>
@@ -172,7 +172,7 @@
       </maps>
       <components>
         <groupHascomponents>
-          <role name="MintRestApi" generation="1" functional="0" release="0" software="C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\WindowsAzure7\csx\Debug\roles\MintRestApi" entryPoint="base\x64\WaHostBootstrapper.exe" parameters="base\x64\WaIISHost.exe " memIndex="-1" hostingEnvironment="frontendadmin" hostingEnvironmentVersion="2">
+          <role name="MintRestApi" generation="1" functional="0" release="0" software="D:\GitHub\restapi\WindowsAzure7\WindowsAzure7\csx\Debug\roles\MintRestApi" entryPoint="base\x64\WaHostBootstrapper.exe" parameters="base\x64\WaIISHost.exe " memIndex="-1" hostingEnvironment="frontendadmin" hostingEnvironmentVersion="2">
             <componentports>
               <inPort name="Endpoint1" protocol="http" portRanges="80" />
             </componentports>
@@ -223,9 +223,9 @@
     </group>
   </groups>
   <implements>
-    <implementation Id="b6dda659-2090-4fda-b237-9d66394ddd90" ref="Microsoft.RedDog.Contract\ServiceContract\WindowsAzure7Contract@ServiceDefinition">
+    <implementation Id="8774f470-78be-4710-9e74-0efbe85481f0" ref="Microsoft.RedDog.Contract\ServiceContract\WindowsAzure7Contract@ServiceDefinition">
       <interfacereferences>
-        <interfaceReference Id="2ca92471-eda3-4bfc-b9f3-e93134162c9f" ref="Microsoft.RedDog.Contract\Interface\MintRestApi:Endpoint1@ServiceDefinition">
+        <interfaceReference Id="940a506d-f48b-4eaa-a074-f614f6f11638" ref="Microsoft.RedDog.Contract\Interface\MintRestApi:Endpoint1@ServiceDefinition">
           <inPort>
             <inPortMoniker name="/WindowsAzure7/WindowsAzure7Group/MintRestApi:Endpoint1" />
           </inPort>

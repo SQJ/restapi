@@ -48,7 +48,7 @@
     </Startup>
     <Contents>
       <Content destination=".\">
-        <SourceDirectory path="C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Debug\MintRestApiContent\" />
+        <SourceDirectory path="D:\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Debug\MintRestApiContent\" />
       </Content>
     </Contents>
   </WebRole>

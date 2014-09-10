@@ -77,8 +77,8 @@ namespace MintRestApi
         string PurchaseWithCSVByToken(string email, string token, string token_value);
 
         [OperationContract]
-        [WebGet(UriTemplate = "GetPurchaseOrder/{email}/{id}")]
-        Response GetPurchaseOrder(string email, string id);
+        [WebGet(UriTemplate = "GetPurchaseOrder/{email}/{id}?access_token={token_value}")]
+        Response GetPurchaseOrder(string email, string id, string token_value);
 
         [OperationContract]
         [WebGet(UriTemplate = "StatementEx/{email}?access_token={token_value}")]
