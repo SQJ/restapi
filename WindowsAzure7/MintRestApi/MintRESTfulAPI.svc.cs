@@ -30,6 +30,7 @@ using CMATType = MS.Support.CMATGateway.Proxy.SCS;
 using System.Xml.Serialization;
 using System.ServiceModel.Web;
 using System.Xml;
+using MintRestApi.BTCC;
 
 namespace MintRestApi
 {
@@ -2418,7 +2419,7 @@ namespace MintRestApi
             string exid = res.externalKey;
             string status = res.status;
             insertOrderHistory(exid.ToString(), "", "", "", 0, 0, "Purchase With CSV", "Complete", "", "CSV");
-            OrderHistory order = GetOrder("ttt",exid,"aaa");
+            OrderHistory order = GetOrder("placeholder", exid, "placeholder");
 
             if (status == "paid" && order.transtype == "Fund CSV With Bitcoin")
             {
@@ -2432,9 +2433,7 @@ namespace MintRestApi
             {
                 status = "Complete";
             }
-            int t = updateOrderHistory(exid, order.account, order.transtype, status, "BTC");
-
-            //int t = updateOrderHistory(exid, order.account, "Purchase With Bitcoin", status, "BTC");      
+            int t = updateOrderHistory(exid, order.account, order.transtype, status, "BTC"); 
             return t.ToString();
         }
 
@@ -2445,13 +2444,10 @@ namespace MintRestApi
                 var reader = new StreamReader(res);
                 string ss = reader.ReadToEnd();
 
-                //test info
-                insertOrderHistory(ss, "", "", "", 0, 0, "Purchase With CSV", "Complete", "", "CSV");
-
                 result m = JsonConvert.DeserializeObject<result>(ss);
                 string exid = m.externalKey;
                 string status = m.status;
-                OrderHistory order = GetOrder("ttt", exid, "aaa");
+                OrderHistory order = GetOrder("placeholder", exid, "placeholder");
                 if (status == "paid" && order.transtype == "Fund CSV With Bitcoin")
                 {
                     string account_email = order.account;
@@ -2484,7 +2480,6 @@ namespace MintRestApi
                     return "Untrusted Client Request";
                 }
                 string id;
-                //insertFundWithBTC(email, Decimal.Parse(amount));
                 id = insertOrderHistory(email, "CSV", "CSV", "Microsoft", Decimal.Parse(amount), 0, "Fund CSV With Bitcoin", "Created", "Fund CSV With Bitcoin", "BTC");
 
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
@@ -2502,13 +2497,13 @@ namespace MintRestApi
                     { "method", method },
                     { "params", param } 
                 };
-                string paramsHash = GetHMACSHA1Hash(secretKey, BuildQueryString(parameters));
+                string paramsHash = BTCService.GetHMACSHA1Hash(secretKey, BTCService.BuildQueryString(parameters));
                 string base64String = Convert.ToBase64String(
                 Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
                 string url = "https://api.btcchina.com/api.php/payment";
                 string postData = "{\"method\": \"" + method + "\", \"params\": [" + amount + ",\"USD\",\"" + callback_url + "\",\"" + callback_url + "\",\"" + id + "\",\"Funding CSV\"], \"id\": 1}";
                 //res.id = postData + param;
-                Response res = SendPostByWebRequest(url, base64String, tonce, postData);
+                Response res = BTCService.SendPostByWebRequest(url, base64String, tonce, postData);
                 if (res.result != null)
                 {
                     //insert into database
@@ -2613,13 +2608,13 @@ namespace MintRestApi
                 { "method", method },
                 { "params", param } 
             };
-            string paramsHash = GetHMACSHA1Hash(secretKey, BuildQueryString(parameters));
+            string paramsHash = BTCService.GetHMACSHA1Hash(secretKey, BTCService.BuildQueryString(parameters));
             string base64String = Convert.ToBase64String(
             Encoding.ASCII.GetBytes(accessKey + ':' + paramsHash));
             string url = "https://api.btcchina.com/api.php/payment";
             string postData = "{\"method\": \"" + method + "\", \"params\": [" + total.ToString() + ",\"USD\",\"" + callback_url + "\",\"" + callback_url + "\",\"" + id + "\",\"TestOrder\"], \"id\": 1}";
             //res.id = postData + param;
-            res = SendPostByWebRequest(url, base64String, tonce, postData);
+            res = BTCService.SendPostByWebRequest(url, base64String, tonce, postData);
             return res;
         }
 
@@ -2653,77 +2648,7 @@ namespace MintRestApi
             return res;
         }
 
-        public Response SendPostByWebRequest(string url, string base64, string tonce, string postData)
-        {
-            WebRequest webRequest = WebRequest.Create(url);
-            //WebRequest webRequest = HttpWebRequest.Create(url);
-            if (webRequest == null)
-            {
-                Console.WriteLine("Failed to create web request for url: " + url);
-                return null;
-            }
 
-            byte[] bytes = Encoding.ASCII.GetBytes(postData);
-
-            webRequest.Method = "POST";
-            webRequest.ContentType = "application/json-rpc";
-            webRequest.ContentLength = bytes.Length;
-            webRequest.Headers["Authorization"] = "Basic " + base64;
-            webRequest.Headers["Json-Rpc-Tonce"] = tonce;
-            try
-            {
-                // Send the json authentication post request
-                using (Stream dataStream = webRequest.GetRequestStream())
-                {
-                    dataStream.Write(bytes, 0, bytes.Length);
-                    dataStream.Close();
-                }
-                // Get authentication response
-                using (WebResponse response = webRequest.GetResponse())
-                {
-                    using (var stream = response.GetResponseStream())
-                    {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            var ss = reader.ReadToEnd();
-                            Response m = JsonConvert.DeserializeObject<Response>(ss);
-                            return m;
-                        }
-                    }
-                }
-            }
-            catch (WebException ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-        }
-
-        private string BuildQueryString(NameValueCollection parameters)
-        {
-            List<string> keyValues = new List<string>();
-            foreach (string key in parameters)
-            {
-                keyValues.Add(key + "=" + parameters[key]);
-            }
-            var ss = String.Join("&", keyValues.ToArray());
-            return String.Join("&", keyValues.ToArray());
-        }
-
-        private string GetHMACSHA1Hash(string secret_key, string input)
-        {
-            HMACSHA1 hmacsha1 = new HMACSHA1(Encoding.ASCII.GetBytes(secret_key));
-            MemoryStream stream = new MemoryStream(Encoding.ASCII.GetBytes(input));
-            byte[] hashData = hmacsha1.ComputeHash(stream);
-
-            // Format as hexadecimal string.
-            StringBuilder hashBuilder = new StringBuilder();
-            foreach (byte data in hashData)
-            {
-                hashBuilder.Append(data.ToString("x2"));
-            }
-            return hashBuilder.ToString();
-        }
         #endregion
 
         #region Purchase with CSV
