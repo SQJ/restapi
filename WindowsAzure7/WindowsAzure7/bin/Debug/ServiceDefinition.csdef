@@ -46,10 +46,5 @@
     <Startup priority="-2">
       <Task commandLine="Microsoft.WindowsAzure.Caching\ClientPerfCountersInstaller.exe install" executionContext="elevated" taskType="simple" />
     </Startup>
-    <Contents>
-      <Content destination=".\">
-        <SourceDirectory path="D:\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Debug\MintRestApiContent\" />
-      </Content>
-    </Contents>
   </WebRole>
 </ServiceDefinition>

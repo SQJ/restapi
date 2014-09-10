@@ -66,7 +66,7 @@ namespace MintRestApi
 
         private static CTPConfiguration config = new CTPConfiguration(soapServer, certFile);
 
-        public enum QueryStatus { Success, NoUser, WrongDevice, NoHeader, NoDevice, WrongInfo };
+        public enum QueryStatus { Success, NoUser, WrongDevice, NoHeader };
 
         private static CacheData cachedata = new CacheData();
         
@@ -193,8 +193,6 @@ namespace MintRestApi
 
                 if (status == QueryStatus.Success)
                 {
-
-                    DeviceID_Update(deviceID, email);
                     urlflag = verifyURL();
                     return urlflag;
                 }
@@ -204,8 +202,8 @@ namespace MintRestApi
                     if (!flag) return false;
                     else
                     {
-                        if (status == QueryStatus.NoDevice) DeviceID_Insert(deviceID, email);
-                        else if (status == QueryStatus.WrongInfo) DeviceID_Update(deviceID, email);
+                        if (status == QueryStatus.NoUser) DeviceID_Insert(deviceID, email);
+                        else if (status == QueryStatus.WrongDevice) DeviceID_Update(deviceID, email);
                     }
                     urlflag = verifyURL();
                     return urlflag;
@@ -310,6 +308,13 @@ namespace MintRestApi
                     accinfo.securitystatus = "Untrusted Client Request";
                     return accinfo;
                 }
+                object acccache = cachedata.getAccountInfo(email);
+                if (acccache != null)
+                {
+                    accinfo = (AccountInfo)acccache;
+                    return accinfo;
+                }
+
                 var puid = EmailToPuid(email);
                 var request = new GetAccountInput
                 {
@@ -355,6 +360,8 @@ namespace MintRestApi
                     accinfo.account = res.AccountOutputInfo.FirstOrDefault().AccountID;
                     accinfo.puid = puid;
                     accinfo.securitystatus = "Secure";
+
+                    cachedata.addAccountInfo(email, accinfo);
                     return accinfo;
                 }
                 else
@@ -399,6 +406,13 @@ namespace MintRestApi
         {
             try
             {
+                object acccache = cachedata.getaccountid(puid);
+                if (acccache != null)
+                {
+                    string accid = (string)acccache;
+                    return accid;
+                }
+
                 var request = new GetAccountInput
                 {
                     CallerInfo = new CallerInfo
@@ -440,6 +454,7 @@ namespace MintRestApi
 
                 if (res.Ack == AckCodeType.Success)
                 {
+                    cachedata.addaccountid(puid, res.AccountOutputInfo.FirstOrDefault().AccountID);
                     return res.AccountOutputInfo.FirstOrDefault().AccountID;
                 }
                 else
@@ -504,22 +519,7 @@ namespace MintRestApi
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
-                {
-                    using (SqlCommand command = conn.CreateCommand())
-                    {
-                        conn.Open();
-
-                        command.CommandText = "insert_deviceID";
-                        command.Parameters.AddWithValue("@id", deviceID);
-                        command.Parameters.AddWithValue("@email", email);
-                        command.Parameters.AddWithValue("ExpireDate", DateTime.UtcNow.AddMinutes(30));
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.ExecuteNonQuery();
-
-                        conn.Close();
-                    }
-                }
+                cachedata.addDeviceAuth(email, deviceID);
             }
             catch (Exception e)
             {
@@ -532,22 +532,7 @@ namespace MintRestApi
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
-                {
-                    using (SqlCommand command = conn.CreateCommand())
-                    {
-                        conn.Open();
-
-                        command.CommandText = "update_deviceID";
-                        command.Parameters.AddWithValue("@id", deviceID);
-                        command.Parameters.AddWithValue("@email", email);
-                        command.Parameters.AddWithValue("ExpireDate", DateTime.UtcNow.AddMinutes(30));
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.ExecuteNonQuery();
-
-                        conn.Close();
-                    }
-                }
+                cachedata.updateDeviceAuth(email, deviceID);
             }
             catch (Exception e)
             {
@@ -645,6 +630,13 @@ namespace MintRestApi
         {
             try
             {
+                object puidcache = cachedata.getPUID(email);
+                if (puidcache != null)
+                {
+                    string res = (string)puidcache;
+                    return res;
+                }
+
                 if (email.Contains("-int.com"))
                 {
                     string puid = null;
@@ -660,7 +652,8 @@ namespace MintRestApi
                         
 
                     }
-
+                    cachedata.addPUID(email, puid);
+                    cachedata.addp2e(puid, email);
                     return puid;
 
                 }
@@ -680,7 +673,11 @@ namespace MintRestApi
                             while (reader.Read())
                             {
                                 count = count + 1;
-                                return reader["puid"].ToString().Trim();
+                               
+                                string puid = reader["puid"].ToString().Trim();
+                                cachedata.addPUID(email, puid);
+                                cachedata.addp2e(puid, email);
+                                return puid;
                             }
                         }
                         if (count == 0)
@@ -696,6 +693,8 @@ namespace MintRestApi
                                     return reader["puid"].ToString().Trim();
                                 }
                             }
+                            cachedata.addPUID(email, puid);
+                            cachedata.addp2e(puid, email);
                             return puid;
                         }
 
@@ -714,29 +713,8 @@ namespace MintRestApi
         {
             try
             {
-                int count = 0;
-                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
-                {
-                    using (SqlCommand command = conn.CreateCommand())
-                    {
-                        conn.Open();
-                        command.CommandText = "puid_to_email";
-                        command.Parameters.AddWithValue("@puid", puid);
-                        command.CommandType = CommandType.StoredProcedure;
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            // Loop over the results
-                            count = 0;
-                            while (reader.Read())
-                            {
-                                count = count + 1;
-                                return reader["email"].ToString().Trim();
-                            }
-                        }
-                        conn.Close();
-                    }
-                }
-                return null;
+                string email = cachedata.getp2e(puid).ToString();
+                return email;
             }
             catch (Exception e)
             {
@@ -1042,7 +1020,6 @@ namespace MintRestApi
         //        throw e;
         //    }
         //}
-
 
         //public string getReceiveTotalCSVfromCSVOnly(string email)
         //{
@@ -1571,6 +1548,8 @@ namespace MintRestApi
         {
             try
             {
+                cachedata.removeOrderlist(email);
+
                 string res = null;
                 using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
                 {
@@ -1613,6 +1592,8 @@ namespace MintRestApi
         {
             try
             {
+                cachedata.removeOrderlist(email);
+
                 int res = 0;
                 using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
                 {
@@ -1643,6 +1624,8 @@ namespace MintRestApi
         {
             try
             {
+                cachedata.removeOrderlist(email);
+
                 int res = 0;
                 using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
                 {
@@ -1728,8 +1711,15 @@ namespace MintRestApi
                 //bool trusted = veritySecurity(token_value, email);
                 //if (!trusted)
                 //{
-                //    return "Untrusted Client Request";
+                //    return null;
                 //}
+                object data = cachedata.getOrderlist(email);
+                if (data != null)
+                {
+                    OrderHistory[] res = (OrderHistory[])data;
+                    return res;
+                }
+
                 ArrayList list = new ArrayList();
                 using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
                 {
@@ -1762,6 +1752,7 @@ namespace MintRestApi
                     }
                 }
                 OrderHistory[] resArray = (OrderHistory[])list.ToArray(typeof(OrderHistory));
+                cachedata.addOrderlist(email, resArray);
                 return resArray;
             }
             catch (Exception e)
@@ -1891,6 +1882,12 @@ namespace MintRestApi
                 {
                     return null;
                 }
+                object cachePI = cachedata.getPI(email);
+                if (cachePI != null)
+                {
+                    PIType.PaymentInstrument[] result = (PIType.PaymentInstrument[])cachePI;
+                    return result;
+                }
                 var puid = EmailToPuid(email);
                 var accountId = GetAccountWithPuid(puid);
                 var request = new PIType.GetPaymentInstrumentsInput
@@ -1932,6 +1929,7 @@ namespace MintRestApi
 
                 if (res.Ack == PIType.AckCodeType.Success)
                 {
+                    cachedata.addPI(email, res.PaymentInstrumentSet);
                     return res.PaymentInstrumentSet;
                 }
                 else
@@ -1951,6 +1949,24 @@ namespace MintRestApi
         {
             try
             {
+                object data = cachedata.getp2e(puid);
+                if (data != null)
+                {
+                    string email = data.ToString();
+                    data = cachedata.getPI(email);
+                    if (data != null)
+                    {
+                        PIType.PaymentInstrument[] piset = (PIType.PaymentInstrument[])data;
+                        foreach (var pi in piset)
+                        {
+                            if (pi.Type == "StoredValuePaymentInstrument")
+                            {
+                                return pi;
+                            }
+                        };
+                    }
+                }
+
                 var request = new PIType.GetPaymentInstrumentsInput
                 {
                     CallerInfo = new PIType.CallerInfo
@@ -2390,7 +2406,7 @@ namespace MintRestApi
             {
                 status = "Complete";
             }
-            int t = updateOrderHistory(exid, order.account, order.transtype, status, "BTC"); 
+            int t = updateOrderHistory(exid, order.account, order.transtype, status, "BTC");
             return t.ToString();
         }
 
@@ -2441,7 +2457,7 @@ namespace MintRestApi
                 Response res = BTCService.CreateBTCOrder(amount, id);
                 if (res.result != null)
                 {
-                    return("Failed");
+                    return ("Failed");
                 }
                 return res.result.url;
             }
@@ -2889,3 +2905,7 @@ namespace MintRestApi
         #endregion
     }
 }
+
+
+
+
