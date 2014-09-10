@@ -45,10 +45,6 @@ namespace MintRestApi
         PIType.PaymentInstrument[] GetPI(string email, string token_value);
 
         [OperationContract]
-        [WebGet(UriTemplate = "History/{email}?access_token={token_value}")]
-        HistoryItem[] getHistory(string email, string token_value);
-
-        [OperationContract]
         [WebGet(UriTemplate = "Purchase/{email}/{paymentMethodID}/{amount}?access_token={token_value}")]
         string Purchase(string email, string paymentMethodID, string amount, string token_value);
 

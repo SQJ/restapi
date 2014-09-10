@@ -1043,49 +1043,6 @@ namespace MintRestApi
         //    }
         //}
 
-        public HistoryItem[] getHistory(string email, string token_value)
-        {
-            try
-            {
-                bool trusted = veritySecurity(token_value, email);
-                if (!trusted)
-                {
-                    return null;
-                }
-                ArrayList list = new ArrayList();
-                using (SqlConnection conn = new SqlConnection(connString2Builder.ToString()))
-                {
-                    using (SqlCommand command = conn.CreateCommand())
-                    {
-                        conn.Open();
-                        command.CommandText = "get_History";
-                        command.Parameters.AddWithValue("@email", email);
-                        command.CommandType = CommandType.StoredProcedure;
-                        using (SqlDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                HistoryItem item = new HistoryItem();
-                                item.receiver_email = reader["receiver_email"].ToString().Trim();
-                                item.sender_email = reader["sender_email"].ToString().Trim();
-                                item.type = reader["type"].ToString().Trim();
-                                item.time = reader["time"].ToString().Trim();
-                                item.amount = reader["amount"].ToString().Trim();
-                                item.time = translateEpochTime(Int32.Parse(item.time));
-                                list.Add(item);
-                            }
-                        }
-                    }
-                }
-                HistoryItem[] resArray = (HistoryItem[])list.ToArray(typeof(HistoryItem));
-                return resArray;
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError(e.ToString());
-                throw e;
-            }
-        }
 
         //public string getReceiveTotalCSVfromCSVOnly(string email)
         //{
