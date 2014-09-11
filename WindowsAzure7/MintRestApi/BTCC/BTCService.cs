@@ -17,7 +17,7 @@ namespace MintRestApi.BTCC
         private const string accessKey = "6351c6e2-f6d0-4403-a2ab-f1fee2fc782e";
         private const string secretKey = "bb7cf19c-29be-4a52-bebe-8ed1e3caad77";
         private const string url = "https://api.btcchina.com/api.php/payment";
-        private const string callback_url = "http://mintrestapi2.cloudapp.net/MintRESTfulAPI.svc/BTCResponse";
+        private const string callback_url = "http://mintrestapi3.cloudapp.net/MintRESTfulAPI.svc/BTCResponseOp";
         private const string method = "createPurchaseOrder";
 
         public static Response GetPurchaseOrder(string id)

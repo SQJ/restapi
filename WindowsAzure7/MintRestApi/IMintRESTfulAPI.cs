@@ -45,8 +45,8 @@ namespace MintRestApi
         PIType.PaymentInstrument[] GetPI(string email, string token_value);
 
         [OperationContract]
-        [WebGet(UriTemplate = "Purchase/{email}/{paymentMethodID}/{amount}?access_token={token_value}")]
-        string Purchase(string email, string paymentMethodID, string amount, string token_value);
+        [WebInvoke(UriTemplate = "FundWithCC?access_token={token_value}", Method = "POST", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
+        string Purchase(FundWithCCRequest request, string token_value);
 
         [OperationContract]
         [WebGet(UriTemplate = "FundWithBTC/{email}/{amount}?access_token={token_value}")]

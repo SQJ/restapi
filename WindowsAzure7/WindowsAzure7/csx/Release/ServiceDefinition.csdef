@@ -12,6 +12,7 @@
       <Setting name="DiagPerfSampleRateSeconds" />
       <Setting name="DiagTransferPeriodMinutes" />
       <Setting name="DiagWindowsEventLogLevel" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Caching.ClientDiagnosticLevel" />
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" />

@@ -2190,10 +2190,14 @@ namespace MintRestApi
         //paymentMethodID : the PIID of the paying PI, e.g. credit card
         //SVPIId : the 
         //account : amount of SV to be bought
-        public string Purchase(string email, string paymentMethodID, string amount, string token_value)
+        public string Purchase(FundWithCCRequest request, string token_value)
         {
             try
             {
+                string email = request.email;
+                string paymentMethodID = request.paymentMethodID;
+                string amount = request.amount;
+
                 bool trusted = veritySecurity(token_value, email);
                 if (!trusted)
                 {
@@ -2416,7 +2420,7 @@ namespace MintRestApi
             {
                 var reader = new StreamReader(res);
                 string ss = reader.ReadToEnd();
-
+                insertOrderHistory("testtest", "CSV", "CSV", "Microsoft", 0, 0, "btctest", "Complete", ss, "CreditCard");
                 result m = JsonConvert.DeserializeObject<result>(ss);
                 string exid = m.externalKey;
                 string status = m.status;

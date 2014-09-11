@@ -29,6 +29,7 @@
       <Setting name="DiagPerfSampleRateSeconds" />
       <Setting name="DiagInfrastuctureLogLevel" />
       <Setting name="DiagWindowsEventLogLevel" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.Caching.ClientDiagnosticLevel" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="Endpoint1" protocol="http" port="80" />
@@ -42,9 +43,12 @@
     <Certificates>
       <Certificate name="spk-partner-azurecsr-int" storeLocation="LocalMachine" storeName="My" />
     </Certificates>
+    <Startup priority="-2">
+      <Task commandLine="Microsoft.WindowsAzure.Caching\ClientPerfCountersInstaller.exe install" executionContext="elevated" taskType="simple" />
+    </Startup>
     <Contents>
       <Content destination=".\">
-        <SourceDirectory path="C:\Users\t-jzha\Documents\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Release\MintRestApiContent\" />
+        <SourceDirectory path="D:\GitHub\restapi\WindowsAzure7\WindowsAzure7\rcf\Release\MintRestApiContent\" />
       </Content>
     </Contents>
   </WebRole>

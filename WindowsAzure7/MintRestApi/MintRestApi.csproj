@@ -142,6 +142,12 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="RawContentTypeMapper.cs" />
+    <Compile Include="Request\FundWithBTCRequest.cs" />
+    <Compile Include="Request\FundWithCCRequest.cs" />
+    <Compile Include="Request\PurchaseGiftRequest.cs" />
+    <Compile Include="Request\PurchaseWithBTCRequest.cs" />
+    <Compile Include="Request\PurchaseWithCSVRequest.cs" />
+    <Compile Include="Request\updateURIRequest.cs" />
     <Compile Include="SettingsFacade.cs" />
     <Compile Include="URLMessage.cs" />
     <Compile Include="WebRole.cs" />
