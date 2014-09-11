@@ -6,6 +6,7 @@
     <PackageEnableRemoteDesktop>False</PackageEnableRemoteDesktop>
     <WebRoleSkipLaunchInBrowser>
     </WebRoleSkipLaunchInBrowser>
-    <WebRoleHttpsSkipLaunchInBrowser>MintRestApi</WebRoleHttpsSkipLaunchInBrowser>
+    <WebRoleHttpsSkipLaunchInBrowser>
+    </WebRoleHttpsSkipLaunchInBrowser>
   </PropertyGroup>
 </Project>
